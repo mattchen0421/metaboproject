@@ -1,0 +1,106 @@
+data_som <- data |> 
+    select(all_of(var_names)) |> 
+    as.matrix()
+grid_size <- ceiling(nrow(data_som) ^ (1/2.5))
+som <- data_som |>
+    scale() |>
+    kohonen::som(
+        grid = somgrid(
+            grid_size, grid_size,
+            topo = "hexagonal", neighbourhood.fct = "gaussian"),
+        rlen = 300
+    )
+som_grid <- som[[4]]$pts |>
+    as_tibble() |>
+    mutate(id = row_number())
+som_pts <- tibble(
+    id = som[[2]],
+    dist = som[[3]],
+    condition = drop_na(data) |> pull("condition_1")
+) |>
+    left_join(som_grid, by = "id")
+
+
+ndist <- unit.distances(som$grid)
+cddist <- as.matrix(object.distances(som, type = "codes"))
+cddist[abs(ndist - 1) > .001] <- NA
+neigh.dists <- colMeans(cddist, na.rm = TRUE)
+
+som_grid <- som_grid |>
+    mutate(dist = neigh.dists)
+
+
+# count -------------------------------------------------------------------
+som_count <- som_pts |> 
+    group_by(x, y) |> 
+    count(id, .drop = FALSE)
+
+ggplot(som_count, aes(x0 = x, y0 = y)) +
+    geom_regon(aes(sides = 6, angle = pi/2, r = 0.58, fill = n, ), color = "black") +
+    theme(
+        panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "bottom"
+    ) 
+# pie ---------------------------------------------------------------------
+pts <- som_pts |> 
+    group_by(id, x, y) |> 
+    count(condition) |> 
+    ungroup() |> 
+    dplyr::filter(!is.na(condition))
+    
+ggplot(som_grid, aes(x0 = x,y0 = y))+
+    geom_circle(aes(r = 0.5)) +
+    theme(
+        panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "bottom"
+    ) + 
+    geom_arc_bar(
+        data = pts,
+        aes(
+            x0 = x, y0 = y, r0 = 0, r = 0.5,
+            amount = n, fill = condition
+        ),
+        stat = 'pie'
+    )
+# circle ------------------------------------------------------------------
+
+
+ggplot(som_grid, aes(x0 = x,y0 = y))+
+    geom_circle(aes(r = 0.5)) +
+    theme(
+        panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "bottom"
+    ) +
+    geom_jitter(data = som_pts, aes(x, y, col = condition), alpha = 0.5, size = 3)
+
+
+# changes -----------------------------------------------------------------
+
+plot(som, type="changes")
+
+data_changes <- tibble(
+    x = 1:300,
+    y = som[["changes"]]
+)
+ggplot(data_changes, aes(x = x, y = y)) +
+    geom_line() +
+    labs(x = "iteration", y = "Mean distance to closest unit", title = "Training progress")
+
+# code --------------------------------------------------------------------
+
+
+ggsom::geom_class(
+    som, class = pull(drop_na(data), "condition_1")
+)

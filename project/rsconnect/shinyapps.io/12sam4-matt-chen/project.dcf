@@ -1,0 +1,14 @@
+name: project
+title: project
+username:
+account: 12sam4-matt-chen
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9365052
+bundleId: 7419371
+url: https://12sam4-matt-chen.shinyapps.io/project/
+when: 1688493940.03906
+lastSyncTime: 1688493940.03907
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: IgQuantResult_4Std.xlsx

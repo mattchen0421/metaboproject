@@ -1,0 +1,11 @@
+name: projectV2
+title: projectV2
+username:
+account: 12sam4-matt-chen
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9493618
+bundleId: 7584706
+url: https://12sam4-matt-chen.shinyapps.io/projectV2/
+asMultiple: FALSE
+asStatic: FALSE
