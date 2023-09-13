@@ -104,3 +104,28 @@ ggplot(data_changes, aes(x = x, y = y)) +
 ggsom::geom_class(
     som, class = pull(drop_na(data), "condition_1")
 )
+
+# cluster -----------------------------------------------------------------
+
+som_cluster <- cutree(hclust(dist(som$codes)), 5)
+
+# heatmap -----------------------------------------------------------------
+
+data_code <- som_grid |> 
+    bind_cols(getCodes(som))
+
+ggplot(data_code, aes(x0 = x, y0 = y)) +
+    geom_regon(
+        aes(sides = 6, angle = pi/2, r = 0.58, fill = Galactosylation, ),
+        color = "black"
+    ) +
+    theme(
+        panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "bottom"
+    ) +
+    scale_fill_viridis_c(option = "magma")
+paste("abc", filename)

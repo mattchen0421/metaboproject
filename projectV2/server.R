@@ -747,8 +747,15 @@ function(input, output, session) {
         
         som_grid <- som_grid |>
             mutate(dist = neigh.dists)
+        
+        som_code <- som_grid |> 
+            bind_cols(getCodes(som))
+        
         waiter_hide()
-        list("som" = som, "som_grid" = som_grid, "som_pts" = som_pts)
+        list(
+            "som" = som, "som_grid" = som_grid, "som_pts" = som_pts,
+            "som_code" = som_code
+        )
     })
 
 #  * mapping --------------------------------------------------------------
@@ -862,10 +869,67 @@ function(input, output, session) {
             labs(title = "Counts plot") +
             scale_fill_paletteer_c("grDevices::Heat", -1)
     })
+
+#  * heatmap --------------------------------------------------------------
+    output$dynamic_plots <- renderUI({
+        num_plots <- input$num_plots
+        
+        # 生成一個plotOutput列表
+        plot_outputs <- lapply(1:num_plots, function(i) {
+            wellPanel(
+                plotOutput(paste0("plot", i))
+            )
+            
+        })
+        
+        # 返回plotOutput列表
+        do.call(tagList, plot_outputs)
+    })
+    
+    # 在這裡添加圖表生成的代碼
+    observeEvent(input$num_plots, {
+        lapply(1:input$num_plots, function(i) {
+            output[[paste0("plot", i)]] <- renderPlot({
+                # 這裡添加每個圖表的生成代碼
+                x <- rnorm(100)
+                y <- rnorm(100)
+                title <- paste("Plot", i)
+                plot(x, y, main = title)
+            })
+        })    
+    })
+    
+      
+
+    
+    
+    output$som_heat <- renderPlot({
+        ggplot(som()$som_code, aes(x0 = x, y0 = y)) +
+            geom_regon(
+                aes(
+                    sides = 6, angle = pi/2, r = 0.58,
+                    fill = .data[[input$som_var]]
+                ),
+                color = "black"
+            ) +
+            theme(
+                panel.background = element_blank(),
+                axis.ticks = element_blank(),
+                panel.grid = element_blank(),
+                axis.text = element_blank(),
+                axis.title = element_blank(),
+                legend.position = "bottom"
+            ) +
+            scale_fill_viridis_c(option = "magma") +
+            labs(title = paste("Heatmap of", input$som_var))
+    })
     
 #  * * update -------------------------------------------------------------
     observeEvent(is_vars(),
         updateSelectInput(session, "som_is", choices = is_vars())
+    )
+    observeEvent(var_names(),
+        updateSelectInput(session, "som_var", choices = var_names())
     )
 }
 

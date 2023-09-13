@@ -351,41 +351,56 @@ fluidPage(
                     sliderInput("som_rlen",
                         "choose rlen", value = 300, min = 1, max = 2000     
                     ),
+                    selectInput("som_var",
+                        "select variable for heatmap",
+                        choices = c()
+                    ),
+                    sliderInput(
+                        "num_plots", "選擇圖表數量",
+                        min = 1, max = 10, value = 1
+                    ),
                     actionButton("som_start", "start")
                 ),
                 mainPanel(width = 10,
-                    tags$div(
-                        id = "som_plots",
-                        column(
-                            width = 6,
-                            wellPanel(
-                                plotOutput("som_map")
+                    tabsetPanel(
+                        tabPanel("main",
+                            tags$div(
+                                id = "som_plots",
+                                column(
+                                    width = 6,
+                                    wellPanel(
+                                        plotOutput("som_map")
+                                    )
+                                ),
+                                column(
+                                    width = 6,
+                                    wellPanel(
+                                        plotOutput("som_pie")
+                                    )
+                                ),
+                                column(
+                                    width = 6,
+                                    wellPanel(
+                                        plotOutput("som_dist")
+                                    )
+                                ),
+                                column(
+                                    width = 6,
+                                    wellPanel(
+                                        plotOutput("som_changes")
+                                    )
+                                ),
+                                column(
+                                    width = 6,
+                                    wellPanel(
+                                        plotOutput("som_count")
+                                    )
+                                ),
                             )
                         ),
-                        column(
-                            width = 6,
-                            wellPanel(
-                                plotOutput("som_pie")
-                            )
-                        ),
-                        column(
-                            width = 6,
-                            wellPanel(
-                                plotOutput("som_dist")
-                            )
-                        ),
-                        column(
-                            width = 6,
-                            wellPanel(
-                                plotOutput("som_changes")
-                            )
-                        ),
-                        column(
-                            width = 6,
-                            wellPanel(
-                                plotOutput("som_count")
-                            )
-                        ),
+                        tabPanel("heatmaps",
+                            uiOutput("dynamic_plots")
+                        )
                     )
                 )
             )
