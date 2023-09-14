@@ -129,3 +129,15 @@ ggplot(data_code, aes(x0 = x, y0 = y)) +
     ) +
     scale_fill_viridis_c(option = "magma")
 paste("abc", filename)
+
+test <- tags$div(
+    id = "test",
+    lapply(var_names, function(i) {
+        column(width = 6,
+           wellPanel(
+               plotOutput(paste0("som_heatmap", i))
+           )
+        )
+    })
+)
+    
