@@ -297,6 +297,7 @@ fluidPage(
                                         value = 0.5, min = 0, max = 1,
                                         step = 0.1, width = 500 
                                     ),
+                                    actionButton("splsda_loading_refresh", "refresh"), 
                                 )
                             ),
                             shinycssloaders::withSpinner(

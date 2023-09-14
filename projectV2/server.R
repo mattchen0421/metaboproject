@@ -591,32 +591,36 @@ function(input, output, session) {
             return(splsda_loading_data() |> pull(var) |> length()*80)
         }
     })
-    output$splsda_loading <- renderPlot(
-        height = function() splsda_loading_height(), res = 144, {
-        req(splsda_loading_data())
-        p <- ggplot(
-            splsda_loading_data(),
-            aes(
-                .data[[input$splsda_loading_n]],
-                reorder(var, abs(.data[[input$splsda_loading_n]])))
-            ) +
-            geom_bar(
-                aes(fill = ifelse(.data[[input$splsda_loading_n]] > 0, "pink", "lightblue")),
-                stat = "identity", show.legend = FALSE
-            ) +
-            geom_text(
-                aes(
-                    label = round(.data[[input$splsda_loading_n]], 2),
-                    hjust = ifelse(.data[[input$splsda_loading_n]] < 0, 1.25, -0.25),
-                    vjust = 0.5
-                ),
-                size = 5
-            ) +
-            xlab("Loading") +
-            ylab("Group") +
-            scale_x_continuous(limits = c(-1, 1))
-        print(p)
+    observeEvent(input$splsda_loading_refresh, {
+        output$splsda_loading <- renderPlot(
+            height = function() splsda_loading_height(), res = 144, {
+                req(splsda_loading_data())
+                
+                p <- ggplot(
+                    splsda_loading_data(),
+                    aes(
+                        .data[[input$splsda_loading_n]],
+                        reorder(var, abs(.data[[input$splsda_loading_n]])))
+                ) +
+                    geom_bar(
+                        aes(fill = ifelse(.data[[input$splsda_loading_n]] > 0, "pink", "lightblue")),
+                        stat = "identity", show.legend = FALSE
+                    ) +
+                    geom_text(
+                        aes(
+                            label = round(.data[[input$splsda_loading_n]], 2),
+                            hjust = ifelse(.data[[input$splsda_loading_n]] < 0, 1.25, -0.25),
+                            vjust = 0.5
+                        ),
+                        size = 5
+                    ) +
+                    xlab("Loading") +
+                    ylab("Group") +
+                    scale_x_continuous(limits = c(-1, 1))
+                print(p)
+            })
     })
+    
 
 #  * cor ------------------------------------------------------------------
     splsda_cor_vip <- reactive({
@@ -631,7 +635,8 @@ function(input, output, session) {
         ) |> 
             add_column("importance" = rank(desc(splsda_cor_vip()))) |> 
             filter(importance <= input$splsda_cor_vip)
-    })    
+    }) |> 
+        debounce(500)
     output$splsda_cor <- renderPlot(height = 800, res = 144, {
         req(length(input$splsda_cor_n) == 2, splsda_cor_data())
         # "#8B7E66"
@@ -679,7 +684,9 @@ function(input, output, session) {
     })
 
 #  * * update ---------------------------------------------------------------
-
+    # observeEvent(splsda_loading_data(),{
+    #     onclick("splsda_loading_refresh")
+    # })
     observeEvent(is_vars(),
         updateSelectInput(session, "splsda_is", choices = is_vars())
     )
@@ -917,7 +924,7 @@ function(input, output, session) {
     })
     
 
-# codes plot --------------------------------------------------------------
+#  *codes plot --------------------------------------------------------------
     output$som_codes <- renderPlot({
         plot(som()$som, type = "codes", main = "Codes Plot")
     })
