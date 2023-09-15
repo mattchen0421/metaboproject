@@ -573,7 +573,9 @@ function(input, output, session) {
     })
 
 #  * loading --------------------------------------------------------------
-    splsda_loading_data <- reactive({
+    splsda_loading_data <- eventReactive(input$splsda_loading_refresh,
+        ignoreNULL = FALSE, ignoreInit = FALSE, {
+        req(input$splsda_loading_n, splsda_var(), input$splsda_loading_valve)
         data <- splsda_var()[["loading"]] |>
             data.frame() |>
             rownames_to_column("var") |> 
@@ -591,41 +593,49 @@ function(input, output, session) {
             return(splsda_loading_data() |> pull(var) |> length()*80)
         }
     })
-    observeEvent(input$splsda_loading_refresh, {
-        output$splsda_loading <- renderPlot(
-            height = function() splsda_loading_height(), res = 144, {
-                req(splsda_loading_data())
-                
-                p <- ggplot(
-                    splsda_loading_data(),
-                    aes(
-                        .data[[input$splsda_loading_n]],
-                        reorder(var, abs(.data[[input$splsda_loading_n]])))
-                ) +
-                    geom_bar(
-                        aes(fill = ifelse(.data[[input$splsda_loading_n]] > 0, "pink", "lightblue")),
-                        stat = "identity", show.legend = FALSE
-                    ) +
-                    geom_text(
-                        aes(
-                            label = round(.data[[input$splsda_loading_n]], 2),
-                            hjust = ifelse(.data[[input$splsda_loading_n]] < 0, 1.25, -0.25),
-                            vjust = 0.5
-                        ),
-                        size = 5
-                    ) +
-                    xlab("Loading") +
-                    ylab("Group") +
-                    scale_x_continuous(limits = c(-1, 1))
-                print(p)
-            })
+
+
+ 
+    
+    output$splsda_loading <- renderPlot(
+        height = function() splsda_loading_height(),
+        res = 144, {
+        p <- ggplot(
+            splsda_loading_data(),
+            aes(
+                .data[[input$splsda_loading_n]],
+                reorder(var, abs(.data[[input$splsda_loading_n]])))
+        ) +
+            geom_bar(
+                aes(fill = ifelse(.data[[input$splsda_loading_n]] > 0, "pink", "lightblue")),
+                stat = "identity", show.legend = FALSE
+            ) +
+            geom_text(
+                aes(
+                    label = round(.data[[input$splsda_loading_n]], 2),
+                    hjust = ifelse(.data[[input$splsda_loading_n]] < 0, 1.25, -0.25),
+                    vjust = 0.5
+                ),
+                size = 5
+            ) +
+            xlab("Loading") +
+            ylab("Group") +
+            scale_x_continuous(limits = c(-1, 1))
+        print(p)
     })
+
     
 
 #  * cor ------------------------------------------------------------------
     splsda_cor_vip <- reactive({
-        vip(splsda_var()[["splsda"]])[ ,as.numeric(input$splsda_cor_n)] |> 
+        vip <- vip(splsda_var()[["splsda"]])[ ,as.numeric(input$splsda_cor_n)] |> 
         rowSums()
+        cor <- plotVar(
+            splsda_var()[["splsda"]],
+            comp = as.numeric(input$splsda_cor_n),
+            plot = FALSE
+        )
+        vip[row.names(cor)]
     })
     splsda_cor_data <- reactive({
         plotVar(
@@ -633,13 +643,13 @@ function(input, output, session) {
             comp = as.numeric(input$splsda_cor_n),
             plot = FALSE
         ) |> 
-            add_column("importance" = rank(desc(splsda_cor_vip()))) |> 
-            filter(importance <= input$splsda_cor_vip)
+            add_column("importance" = splsda_cor_vip()) |> 
+            arrange(desc(importance)) |> 
+            slice_head(n = input$splsda_cor_vip)
     }) |> 
         debounce(500)
     output$splsda_cor <- renderPlot(height = 800, res = 144, {
         req(length(input$splsda_cor_n) == 2, splsda_cor_data())
-        # "#8B7E66"
         ggplot(splsda_cor_data(), aes(x, y)) +
             geom_circle(aes(x0 = 0, y0 = 0, r = 0.5)) +
             geom_circle(aes(x0 = 0, y0 = 0, r = 1)) +
@@ -684,9 +694,6 @@ function(input, output, session) {
     })
 
 #  * * update ---------------------------------------------------------------
-    # observeEvent(splsda_loading_data(),{
-    #     onclick("splsda_loading_refresh")
-    # })
     observeEvent(is_vars(),
         updateSelectInput(session, "splsda_is", choices = is_vars())
     )
@@ -822,7 +829,10 @@ function(input, output, session) {
 
     output$som_dist <- renderPlot(res = 108, {
         p <- ggplot(som()$som_grid, aes(x0 = x,y0 = y)) +
-            geom_circle(aes(r = 0.5, fill = dist)) +
+            geom_regon(
+                aes(sides = 6, angle = pi/2, r = 0.58, fill = dist),
+                color = "black"
+            ) +
             theme(
                 panel.background = element_blank(),
                 axis.ticks = element_blank(),

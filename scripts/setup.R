@@ -6,6 +6,7 @@ library(shinyglide)
 library(mixOmics)
 library(ggforce)
 library(kohonen)
+library(shinyjs)
 
 tidymodels::tidymodels_prefer()
 

@@ -11,14 +11,14 @@ Y <- data |>
 tune_splsda <- tune.splsda(
     X, Y, ncomp = 5, validation = 'Mfold', 
     folds = 5, dist = 'max.dist', 
-    test.keepX = 1:10, nrepeat = 50, progressBar = TRUE
+    test.keepX = 1:10, nrepeat = 10, progressBar = TRUE
 )
 
 plot(tune_splsda, sd = TRUE)
 tune_splsda$choice.ncomp$ncomp
 tune_splsda$choice.keepX
 
-splsda <- splsda(X, Y, ncomp = 5, keepX = NULL) 
+splsda <- splsda(X, Y, ncomp = 2, keepX = c(2, 1)) 
 
 variates <- splsda$variates$X |> as_tibble()
 
@@ -46,6 +46,17 @@ plotVar(splsda, comp = c(1,2))
 
 splsda_vip <- vip(splsda)[,c(1, 2)] |> 
     rowSums()
+
+cor <- plotVar(splsda, comp = c(1,2), plot = FALSE)
+
+splsda_vip[row.names(cor)]
+
+final <- cor |> 
+    add_column("importance" = splsda_vip[row.names(cor)]) |> 
+    arrange(desc(importance)) |> 
+    slice_head(n = 2)
+    
+
 splsda_cor <- plotVar(splsda, comp = c(1,2), plot = FALSE) |> 
     add_column("importance" = desc(splsda_vip) |> rank()) |> 
     filter(importance <= 5)
