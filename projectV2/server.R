@@ -10,6 +10,7 @@ library(ggforce)
 library(ggpubr)
 library(kohonen)
 library(paletteer)
+library(periscope)
 tidymodels::tidymodels_prefer()
 
 function(input, output, session) {
@@ -429,22 +430,16 @@ function(input, output, session) {
         waiter_hide()
         perf_data
     })
-    output$plsda_perf <- renderPlotly({
-        p <- ggplot(
-            plsda_perf(),
-            aes(
-                x = component, y = value,
-                group = interaction(dist, class), color = dist)
-            ) +
-            geom_point() +
-            geom_path(aes(linetype = class)) +
-            scale_x_continuous(breaks = 1:isolate(input$plsda_n)) +
-            geom_errorbar(aes(ymin = value - sd, ymax = value + sd)) +
-            ylab("Classification erro rate")
-        ggplotly(p)
-    })
-    output$plsda_score <- renderPlot(height = 600, res = 144, {
-        req(length(input$plsda_score_n) > 1)
+    ss_userAction.Log <- reactiveVal()
+    # downloadablePlot(
+    #     "object_id1",
+    #      logger = ss_userAction.Log,
+    #      filenameroot = "mydownload1",
+    #      aspectratio = 1.33,
+    #      downloadfxns = list(png = plsda_score_plot),
+    #      visibleplot = plsda_score_plot
+    # )
+    plsda_score_plot <- reactive({
         final_data <- plsda()$variates$X |> 
             bind_cols(
                 condition = data() |>
@@ -465,6 +460,24 @@ function(input, output, session) {
                 strip.text = element_text(size = 12)
             )
         print(p)
+    })
+    output$plsda_score <- renderPlot(height = 600, res = 144, {
+        req(length(input$plsda_score_n) > 1)
+        plsda_score_plot()
+    })
+    output$plsda_perf <- renderPlotly({
+        p <- ggplot(
+            plsda_perf(),
+            aes(
+                x = component, y = value,
+                group = interaction(dist, class), color = dist)
+            ) +
+            geom_point() +
+            geom_path(aes(linetype = class)) +
+            scale_x_continuous(breaks = 1:isolate(input$plsda_n)) +
+            geom_errorbar(aes(ymin = value - sd, ymax = value + sd)) +
+            ylab("Classification erro rate")
+        ggplotly(p)
     })
     
     ## update

@@ -7,6 +7,7 @@ library(shinyglide)
 library(shinyWidgets)
 library(htmltools)
 library(sortable)
+library(periscope)
 
 fluidPage(
     shinythemes::themeSelector(),
@@ -217,31 +218,33 @@ fluidPage(
                      actionButton("plsda_start", "start"),
                      actionButton("plsda_perf_start", "performance")
                  ),
-                 mainPanel(
-                     glide(controls_position = "top", height = "800px",
-                       shinyglide::screen(next_condition = "input.plsda_perf_start > 0",
-                           pickerInput("plsda_score_n",
-                               label = "Select which componemt to show", 
-                               choices = c(),
-                               options = list(
-                                   `actions-box` = TRUE,
-                                   `selected-text-format` = "count > 2"
-                               ), 
-                               multiple = TRUE
-                           ),
-                           shinycssloaders::withSpinner(
-                               plotOutput("plsda_score")
-                           )
-                       ),
-                       shinyglide::screen(
-                           shinycssloaders::withSpinner(
-                               plotlyOutput("plsda_perf", height = "600px")
-                           )
-                       )
+                mainPanel(
+                    glide(controls_position = "top", height = "800px",
+                        shinyglide::screen(next_condition = "input.plsda_perf_start > 0",
+                            pickerInput("plsda_score_n",
+                                label = "Select which componemt to show", 
+                                choices = c(),
+                                options = list(
+                                    `actions-box` = TRUE,
+                                    `selected-text-format` = "count > 2"
+                                ), 
+                                multiple = TRUE
+                            ),
+                        shinycssloaders::withSpinner(
+                                plotOutput("plsda_score")
+                            ),
+                            downloadablePlotUI(
+                                "object_id1",
+                            )
+                        ),
+                        shinyglide::screen(
+                            shinycssloaders::withSpinner(
+                                plotlyOutput("plsda_perf", height = "600px")
+                            )
+                        )
                     )
                 )    
             )
-                  
         ),
 
 # sPLSDA ------------------------------------------------------------------
