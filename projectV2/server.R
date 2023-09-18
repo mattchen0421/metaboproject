@@ -391,6 +391,7 @@ function(input, output, session) {
 
 # PLSDA -------------------------------------------------------------------
     hideElement("plsda_perf_start")
+    hideElement("plsda_download")
     plsda <- eventReactive(input$plsda_start, {
         req(data())
         waiter_show()
@@ -430,15 +431,7 @@ function(input, output, session) {
         waiter_hide()
         perf_data
     })
-    ss_userAction.Log <- reactiveVal()
-    # downloadablePlot(
-    #     "object_id1",
-    #      logger = ss_userAction.Log,
-    #      filenameroot = "mydownload1",
-    #      aspectratio = 1.33,
-    #      downloadfxns = list(png = plsda_score_plot),
-    #      visibleplot = plsda_score_plot
-    # )
+  
     plsda_score_plot <- reactive({
         final_data <- plsda()$variates$X |> 
             bind_cols(
@@ -465,6 +458,16 @@ function(input, output, session) {
         req(length(input$plsda_score_n) > 1)
         plsda_score_plot()
     })
+    
+    output$plsda_download <- downloadHandler(
+        contentType = "image/png",
+        filename = function() {
+            "plsda_score.png"
+        },
+        content = function(file) {
+            ggsave(file, plot = plsda_score_plot(), device = "png")
+        }
+    )
     output$plsda_perf <- renderPlotly({
         p <- ggplot(
             plsda_perf(),
@@ -491,6 +494,9 @@ function(input, output, session) {
     )
     observeEvent(plsda(),
         showElement("plsda_perf_start")    
+    )
+    observeEvent(plsda(),
+        showElement("plsda_download")    
     )
     observeEvent(input$plsda_n,
         updatePickerInput(session, "plsda_score_n", choices = 1:input$plsda_n)             

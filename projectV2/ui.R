@@ -230,11 +230,9 @@ fluidPage(
                                 ), 
                                 multiple = TRUE
                             ),
+                            downloadButton('plsda_download'),
                         shinycssloaders::withSpinner(
                                 plotOutput("plsda_score")
-                            ),
-                            downloadablePlotUI(
-                                "object_id1",
                             )
                         ),
                         shinyglide::screen(
