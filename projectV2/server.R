@@ -781,13 +781,12 @@ function(input, output, session) {
         som_grid <- som_grid |>
             mutate(dist = neigh.dists)
         
-        som_code <- som_grid |> 
-            bind_cols(getCodes(som))
+        # som_code <- som_grid |> 
+        #     bind_cols(getCodes(som))
         
         waiter_hide()
         list(
-            "som" = som, "som_grid" = som_grid, "som_pts" = som_pts,
-            "som_code" = som_code
+            "som" = som, "som_grid" = som_grid, "som_pts" = som_pts
         )
     })
 
@@ -944,7 +943,8 @@ function(input, output, session) {
                         panel.grid = element_blank(),
                         axis.text = element_blank(),
                         axis.title = element_blank(),
-                        legend.position = "bottom"
+                        legend.position = "bottom",
+                        legend.title = element_blank()
                     ) +
                     scale_fill_viridis_c(option = "magma") +
                     labs(title = paste("Heatmap of ", i))
@@ -953,12 +953,45 @@ function(input, output, session) {
     })
     
 
-#  *codes plot --------------------------------------------------------------
+#  * codes plot --------------------------------------------------------------
     output$som_codes <- renderPlot({
         plot(som()$som, type = "codes", main = "Codes Plot")
     })
     
+
+#  * cluster --------------------------------------------------------------
+
+    output$som_elbow <- renderPlot({
+        factoextra::fviz_nbclust(getCodes(som()$som), kmeans, method = "wss")
+    })
     
+    output$som_cluster <- renderPlot({
+        clust <- kmeans(getCodes(som()$som), 6)
+        data_cluster <- som()$som_grid |>
+            bind_cols("cluster" = clust[["cluster"]])
+
+        p <- ggplot(data_cluster, aes(x0 = x, y0 = y)) +
+            geom_regon(
+                aes(sides = 6, angle = pi/2, r = 0.58, fill = factor(cluster)),
+                color = "black", alpha = 0.5
+            ) +
+            geom_jitter(
+                data = som()$som_pts,
+                aes(x, y, col = condition),
+                alpha = 0.5, size = 3
+            ) +
+            theme(
+                panel.background = element_blank(),
+                axis.ticks = element_blank(),
+                panel.grid = element_blank(),
+                axis.text = element_blank(),
+                axis.title = element_blank(),
+                legend.position = "none"
+            ) +
+            labs(title = "cluster plot") +
+            scale_fill_paletteer_d("ggsci::category20_d3")
+        print(p)
+    })
 #  * * update -------------------------------------------------------------
     observeEvent(is_vars(),
         updateSelectInput(session, "som_is", choices = is_vars())

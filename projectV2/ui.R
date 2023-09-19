@@ -396,6 +396,18 @@ fluidPage(
                                         plotOutput("som_codes")
                                     )
                                 ),
+                                column(
+                                    width = 4,
+                                    wellPanel(
+                                        plotOutput("som_elbow")
+                                    )
+                                ),
+                                column(
+                                    width = 4,
+                                    wellPanel(
+                                        plotOutput("som_cluster")
+                                    )
+                                )
                             )
                         ),
                         tabPanel("heatmaps",

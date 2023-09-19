@@ -7,6 +7,7 @@ library(mixOmics)
 library(ggforce)
 library(kohonen)
 library(shinyjs)
+library(factoextra)
 
 tidymodels::tidymodels_prefer()
 

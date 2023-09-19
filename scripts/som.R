@@ -107,8 +107,34 @@ ggsom::geom_class(
 
 # cluster -----------------------------------------------------------------
 
-som_cluster <- cutree(hclust(dist(som$codes)), 5)
+fviz_nbclust(som$codes[[1]], kmeans, method = "wss")
+getCodes(som)
+clust <- kmeans(som$codes[[1]], 6)
 
+data_cluster <- som_grid |> 
+    bind_cols("cluster" = clust[["cluster"]])
+
+ggplot(data_cluster, aes(x0 = x, y0 = y)) +
+    geom_regon(
+        aes(sides = 6, angle = pi/2, r = 0.58, fill = cluster),
+        color = "black"
+    ) +
+    theme(
+        panel.background = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "bottom"
+    ) +
+    labs(title = "cluster plot") +
+    scale_fill_paletteer_c("grDevices::Heat", -1)
+
+plot(
+    som, type = "codes",
+    bgcol = rainbow(9)[clust$cluster],
+    main = "Cluster Map"
+)
 # heatmap -----------------------------------------------------------------
 
 data_code <- som_grid |> 
