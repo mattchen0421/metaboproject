@@ -353,7 +353,10 @@ fluidPage(
                     sliderInput("som_rlen",
                         "choose rlen", value = 300, min = 1, max = 2000     
                     ),
-                    actionButton("som_start", "start")
+                    actionButton("som_start", "start"),
+                    sliderInput("som_cluster_n",
+                        "choose cluster number", value = 6, min = 1, max = 10     
+                    ),
                 ),
                 mainPanel(width = 10,
                     tabsetPanel(

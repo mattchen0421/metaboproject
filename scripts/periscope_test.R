@@ -49,4 +49,4 @@ app_dir = tempdir()
 create_new_application('mysampleapp', location = app_dir, sampleapp = TRUE)
 runApp(paste(app_dir, 'mysampleapp', sep = .Platform$file.sep))
 
-create_new_application(name = 'mytestapp', location = app_dir)
+create_new_application(name = 'mytestapp', location = "/R_profile/metaboproject/periscope_test")

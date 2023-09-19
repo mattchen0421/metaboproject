@@ -954,19 +954,21 @@ function(input, output, session) {
     
 
 #  * codes plot --------------------------------------------------------------
-    output$som_codes <- renderPlot({
+    output$som_codes <- renderPlot(res = 108, {
         plot(som()$som, type = "codes", main = "Codes Plot")
     })
     
 
 #  * cluster --------------------------------------------------------------
 
-    output$som_elbow <- renderPlot({
+    output$som_elbow <- renderPlot(res = 108, {
         factoextra::fviz_nbclust(getCodes(som()$som), kmeans, method = "wss")
     })
     
-    output$som_cluster <- renderPlot({
-        clust <- kmeans(getCodes(som()$som), 6)
+    output$som_cluster <- renderPlot(res = 108, {
+        set.seed(111)
+        req(som(), input$som_cluster_n)
+        clust <- kmeans(getCodes(som()$som), input$som_cluster_n)
         data_cluster <- som()$som_grid |>
             bind_cols("cluster" = clust[["cluster"]])
 
@@ -988,7 +990,7 @@ function(input, output, session) {
                 axis.title = element_blank(),
                 legend.position = "none"
             ) +
-            labs(title = "cluster plot") +
+            labs(title = "Cluster plot") +
             scale_fill_paletteer_d("ggsci::category20_d3")
         print(p)
     })
