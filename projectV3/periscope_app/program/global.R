@@ -11,14 +11,16 @@
 
 library(shiny)
 library(periscope)
-
+library(datamods)
 
 # -- Setup your Application --
-set_app_parameters(title = "Set title in global.R using set_app_parameters()",
-                   titleinfo = NULL,
-                   loglevel = "DEBUG",
-                   showlog = FALSE,
-                   app_version = "1.0.0")
+set_app_parameters(
+    title = "Metabo project",
+    titleinfo = NULL,
+    loglevel = "DEBUG",
+    showlog = FALSE,
+    app_version = "1.0.0"
+)
 
 # -- PROGRAM --
 

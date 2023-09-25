@@ -23,10 +23,25 @@
 # ----------------------------------------
 
 # -- Create Basic Elements
-
+# file_input <- fileInput("file", "Upload data", buttonLabel = "Upload...")
+# test <- import_file_ui("myid")
+# sheet_input <- selectInput("sheet",
+#     "select information sheet", choices = c()
+# )
+menu <- sidebarMenu(
+    menuItem("import", tabName = "import", icon = icon("dashboard")),
+    menuItem("summary", tabName = "summary", icon = icon("dashboard"))
+)
 
 # -- Register Basic Elements in the ORDER SHOWN in the UI
-add_ui_sidebar_basic()
+add_ui_sidebar_basic(
+    append = FALSE,
+    list(
+        menu
+        # sheet_input,
+        # test
+    ), 
+)
 
 
 

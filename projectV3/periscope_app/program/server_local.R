@@ -24,7 +24,8 @@
 # ----------------------------------------
 
 # -- IMPORTS --
-
+library(thematic)
+library(openxlsx)
 
 # -- VARIABLES --
 
@@ -35,5 +36,6 @@
 # ----------------------------------------
 # --          SHINY SERVER CODE         --
 # ----------------------------------------
-
-
+thematic_shiny()
+imported <- import_file_server("myid")
+output$test <- renderPrint(imported$data())

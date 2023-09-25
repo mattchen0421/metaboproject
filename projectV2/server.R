@@ -17,6 +17,8 @@ function(input, output, session) {
     thematic::thematic_shiny()
 # file input --------------------------------------------------------------
 # * read xlsx ---------------------------------------------------------------
+
+        
     sheet_names <- reactive({
         req(input$file)
         getSheetNames(input$file$datapath)
