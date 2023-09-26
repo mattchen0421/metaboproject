@@ -59,7 +59,7 @@ tabs <- tabItems(
             textOutput("info_vars")
         ),
         box(title = "Rows of each group",
-            width = 4,
+            width = 6, background = "light-blue",
             checkboxGroupInput("info_group",
                 "choose group", choices = c()
             ),
