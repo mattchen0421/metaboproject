@@ -13,6 +13,7 @@ library(shiny)
 library(periscope)
 library(datamods)
 library(shinydashboard)
+library(tidyverse)
 
 # -- Setup your Application --
 set_app_parameters(

@@ -33,7 +33,6 @@ tabs <- tabItems(
     tabItem(tabName = "import",
         box(
             width = 12,
-            verbatimTextOutput("test"),
             valueBoxOutput("is_demo", width = 12),
             import_file_ui("data_import",
                 title = "import data sheet",
@@ -46,7 +45,26 @@ tabs <- tabItems(
         )
     ),
     tabItem(tabName = "summary",
-        h2("Dashboard tab content2")
+        valueBoxOutput("info_miss", 3),
+        box(title = "Names of id variable",
+            width = 3, background = "aqua",
+            textOutput("info_id")
+        ),
+        box(title = "Names of grouping variable",
+            width = 3, background = "aqua",
+            textOutput("info_is")
+        ),
+        box(title = "Names of data sheet variable",
+            width = 3, background = "aqua",
+            textOutput("info_vars")
+        ),
+        box(title = "Rows of each group",
+            width = 4,
+            checkboxGroupInput("info_group",
+                "choose group", choices = c()
+            ),
+            tableOutput("group_sum")
+        )
     )
     
 )
