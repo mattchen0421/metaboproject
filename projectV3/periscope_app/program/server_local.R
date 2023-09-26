@@ -38,14 +38,30 @@ library(openxlsx)
 # ----------------------------------------
 thematic_shiny()
 data_sheet_import <- import_file_server(
-    "data_import", trigger_return = "change", reset = reactive(input$data_demo)
+    "data_import", trigger_return = "change"
 )
-info_sheet_import <- import_file_server("info_import", trigger_return = "change")
+info_sheet_import <- import_file_server(
+    "info_import", trigger_return = "change"
+)
 data_sheet <- reactive({
-    if (input$data_demo) {
+    if (any(is.null(data_sheet_import$status()), is.null(info_sheet_import$status()))) {
         return(read.xlsx("program/data/testing_file.xlsx", "Abundance", sep.names = " "))
     } else{
         return(data_sheet_import$data())
+    }
+})
+data_sheet <- reactive({
+    if (any(is.null(data_sheet_import$status()), is.null(info_sheet_import$status()))) {
+        return(read.xlsx("program/data/testing_file.xlsx", "info_test", sep.names = " "))
+    } else{
+        return(info_sheet_import$data())
+    }
+})
+output$is_demo <- renderValueBox({
+    if (any(is.null(data_sheet_import$status()), is.null(info_sheet_import$status()))) {
+        return(valueBox(value = "using demo data", subtitle = ""))
+    } else{
+        return(valueBox(value = "using imported data", subtitle = ""))
     }
 })
 output$test <- renderPrint(colnames(data_sheet()))

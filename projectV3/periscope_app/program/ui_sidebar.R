@@ -29,7 +29,7 @@
 #     "select information sheet", choices = c()
 # )
 menu <- sidebarMenu(
-    menuItem("import", tabName = "import", icon = icon("dashboard")),
+    menuItem("import data", tabName = "import", icon = icon("file-import")),
     menuItem("summary", tabName = "summary", icon = icon("dashboard"))
 )
 

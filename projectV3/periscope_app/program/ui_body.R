@@ -33,7 +33,8 @@ tabs <- tabItems(
     tabItem(tabName = "import",
         box(
             width = 12,
-            checkboxInput("data_demo", label = "use demo data"),
+            verbatimTextOutput("test"),
+            valueBoxOutput("is_demo", width = 12),
             import_file_ui("data_import",
                 title = "import data sheet",
                 file_extensions = c(".xlsx")
@@ -45,7 +46,6 @@ tabs <- tabItems(
         )
     ),
     tabItem(tabName = "summary",
-        verbatimTextOutput("test"),
         h2("Dashboard tab content2")
     )
     
