@@ -31,9 +31,21 @@ useShinyFeedback()
 
 tabs <- tabItems(
     tabItem(tabName = "import",
-        h2("Dashboard tab content1")
+        box(
+            width = 12,
+            checkboxInput("data_demo", label = "use demo data"),
+            import_file_ui("data_import",
+                title = "import data sheet",
+                file_extensions = c(".xlsx")
+            ),
+            import_file_ui("info_import",
+                title = "import info sheet",
+                file_extensions = c(".xlsx")
+            )
+        )
     ),
     tabItem(tabName = "summary",
+        verbatimTextOutput("test"),
         h2("Dashboard tab content2")
     )
     

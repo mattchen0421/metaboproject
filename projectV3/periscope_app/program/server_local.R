@@ -37,5 +37,15 @@ library(openxlsx)
 # --          SHINY SERVER CODE         --
 # ----------------------------------------
 thematic_shiny()
-imported <- import_file_server("myid")
-output$test <- renderPrint(imported$data())
+data_sheet_import <- import_file_server(
+    "data_import", trigger_return = "change", reset = reactive(input$data_demo)
+)
+info_sheet_import <- import_file_server("info_import", trigger_return = "change")
+data_sheet <- reactive({
+    if (input$data_demo) {
+        return(read.xlsx("program/data/testing_file.xlsx", "Abundance", sep.names = " "))
+    } else{
+        return(data_sheet_import$data())
+    }
+})
+output$test <- renderPrint(colnames(data_sheet()))

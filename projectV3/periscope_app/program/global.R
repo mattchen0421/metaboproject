@@ -12,13 +12,14 @@
 library(shiny)
 library(periscope)
 library(datamods)
+library(shinydashboard)
 
 # -- Setup your Application --
 set_app_parameters(
     title = "Metabo project",
     titleinfo = NULL,
     loglevel = "DEBUG",
-    showlog = FALSE,
+    showlog = TRUE,
     app_version = "1.0.0"
 )
 
