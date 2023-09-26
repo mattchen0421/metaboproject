@@ -14,6 +14,8 @@ library(periscope)
 library(datamods)
 library(shinydashboard)
 library(tidyverse)
+library(shinyFeedback)
+library(plotly)
 
 # -- Setup your Application --
 set_app_parameters(
@@ -26,3 +28,4 @@ set_app_parameters(
 
 # -- PROGRAM --
 
+source("program/fxn/select_var_module.R")

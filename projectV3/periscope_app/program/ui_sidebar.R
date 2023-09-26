@@ -30,7 +30,8 @@
 # )
 menu <- sidebarMenu(
     menuItem("import data", tabName = "import", icon = icon("file-import")),
-    menuItem("summary", tabName = "summary", icon = icon("dashboard"))
+    menuItem("summary", tabName = "summary", icon = icon("dashboard")),
+    menuItem("slope plot", tabName = "slope", icon = icon("chart-line"))
 )
 
 # -- Register Basic Elements in the ORDER SHOWN in the UI

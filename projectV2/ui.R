@@ -58,7 +58,7 @@ fluidPage(
             fluidRow(
                 selectInput("t_test_id",
                     "choose id", choices = c()
-                ),  
+                ), 
                 selectInput("t_test_is",
                     "choose condition", choices = c()
                 ),

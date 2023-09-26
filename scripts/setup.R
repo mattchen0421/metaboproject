@@ -9,7 +9,7 @@ library(kohonen)
 library(shinyjs)
 library(factoextra)
 
-tidymodels::tidymodels_prefer()
+
 
 sheet_names <- getSheetNames("data/testing_file.xlsx")
 file_list <- lapply(sheet_names, read.xlsx, xlsxFile = "data/testing_file.xlsx")
@@ -36,12 +36,11 @@ data <- abundance |>
 # data_long2 <- data |> 
 #     pivot_longer(all_of(is_vars[1]), names_to = "vars", values_to = "values")
 # 
-# data_wide <- pivot_wider(
-#     data,
-#     names_from = condition_1,
-#     values_from = "Galactosylation",
-#     id_cols = prepost_id,
-#     unused_fn = list
-# )
+data_wide <- pivot_wider(
+    data,
+    names_from = condition_1,
+    values_from = "Galactosylation",
+    id_cols = prepost_id
+)
 
 
