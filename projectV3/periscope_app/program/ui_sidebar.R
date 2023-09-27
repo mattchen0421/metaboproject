@@ -31,7 +31,12 @@
 menu <- sidebarMenu(
     menuItem("import data", tabName = "import", icon = icon("file-import")),
     menuItem("summary", tabName = "summary", icon = icon("dashboard")),
-    menuItem("slope plot", tabName = "slope", icon = icon("chart-line"))
+    menuItem("slope plot", tabName = "slope", icon = icon("chart-line")),
+    menuItem("density plot", tabName = "density", icon = icon("chart-area")),
+    menuItem("ridgeline plot", tabName = "ridges", icon = icon("chart-area")),
+    menuItem("correlation plot", tabName = "corr", icon = icon("chart-area")),
+    menuItem("dumbbell plot", tabName = "dumbbell", icon = icon("chart-area")),
+    menuItem("box plot", tabName = "box", icon = icon("chart-area"))
 )
 
 # -- Register Basic Elements in the ORDER SHOWN in the UI

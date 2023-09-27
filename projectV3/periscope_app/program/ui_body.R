@@ -18,17 +18,16 @@ library(shinythemes)
 library(shinyjs)
 library(waiter)
 library(shinycssloaders)
-
 # ----------------------------------------
 # --      BODY ELEMENT CREATION         --
 # ----------------------------------------
 
 # -- Create Elements
-themeSelector()
-useShinyjs()
-useWaiter()
-useShinyFeedback()
-
+setup <- tagList(
+    useShinyjs(),
+    useWaiter(),
+    useShinyFeedback()
+)
 tabs <- tabItems(
 
 # import tab --------------------------------------------------------------
@@ -88,7 +87,6 @@ tabs <- tabItems(
         box(
             width = 4,
             uiOutput("slope_var"),
-            uiOutput("slope_id"),
             uiOutput("slope_is"),
             uiOutput("slope_change"),
         ),
@@ -98,12 +96,82 @@ tabs <- tabItems(
                 plotlyOutput("slope", height = "600px")
             )
         )
+    ),
+
+# density plot ------------------------------------------------------------
+    tabItem(tabName = "density",
+        box(
+            width = 4,
+            uiOutput("density_var"),
+            uiOutput("density_group"),
+            uiOutput("density_bw"),
+        ),
+        box(
+            width = 8,
+            withSpinner(
+                plotlyOutput("density", height = "600px")
+            )
+        )
+    ),
+
+# ridgeline plot ----------------------------------------------------------
+    tabItem(tabName = "ridges",
+        box(
+            width = 4,
+            uiOutput("ridges_var")
+        ),
+        uiOutput("ridges_ui")
+    ),
+
+# correlation plot --------------------------------------------------------
+    tabItem(tabName = "corr",
+        box(
+            width = 4,
+            uiOutput("cor_is"),
+            uiOutput("cor_group")
+        ),
+        box(
+            width = 8, height = 650,
+            withSpinner(
+                plotOutput("corr")  
+            )
+        )
+    ),
+
+# dumbbell plot -----------------------------------------------------------
+    tabItem(tabName = "dumbbell",
+        box(
+            width = 4,
+            uiOutput("dumbbell_var"),
+            uiOutput("dumbbell_is"),
+            uiOutput("dumbbell_change")
+        ),
+        box(
+            width = 8,
+            withSpinner(
+                plotlyOutput("dumbbell", height = "600px")
+            )
+        )
+    ),
+
+# box plot ----------------------------------------------------------------
+
+    tabItem(tabName = "box",
+        box(
+            width = 4,
+            uiOutput("box_var"),
+            uiOutput("box_is")
+        ),
+        box(
+            width = 8,
+            downloadablePlotUI("box", height = 600, btn_valign = "top")
+        )
     )
 
-    
+
 )
     
 
 
 # -- Register Elements in the ORDER SHOWN in the UI
-add_ui_body(list(tabs))
+add_ui_body(list(setup, tabs))

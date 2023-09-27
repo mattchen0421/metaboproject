@@ -22,10 +22,11 @@ set_app_parameters(
     title = "Metabo project",
     titleinfo = NULL,
     loglevel = "DEBUG",
-    showlog = TRUE,
+    showlog = FALSE,
     app_version = "1.0.0"
 )
 
 # -- PROGRAM --
 
 source("program/fxn/select_var_module.R")
+conflicted::conflicts_prefer(shinydashboard::box)

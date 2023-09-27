@@ -23,3 +23,4 @@ shinyServer(function(input, output, session) {
             periscope:::fw_get_title(), periscope:::fw_get_loglevel(),
             logger = ss_userAction.Log)
 })
+
