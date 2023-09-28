@@ -201,7 +201,42 @@ tabs <- tabItems(
                 plotlyOutput("plsda_perf", height = "600px")
             )
         )
+    ),
+
+# splsda ------------------------------------------------------------------
+    tabItem(tabName = "splsda",
+        box(
+            width = 4,
+            uiOutput("splsda_is"),
+            numericInput("splsda_ncomp",
+                "choose number of component", value = 5,
+                max = 20, min = 2
+            ),
+            selectInput("splsda_keep",
+                "choose keepX", choices = c("default")
+            ),
+            uiOutput("splsda_keepx"),
+            actionButton("splsda_tune", "tune"),
+            actionButton("splsda_start", "start"),
+        ),
+        tabBox(
+            width = 8,
+            tabPanel(
+                "Overview",
+                withSpinner(
+                    plotOutput("splsda_overview", height = 600)
+                )
+            ),
+            tabPanel(
+                "Score plot",
+                uiOutput("splsda_score_n"),
+                withSpinner(
+                    plotOutput("splsda_score", height = 600)
+                )
+            )
+        )
     )
+
 )
     
 

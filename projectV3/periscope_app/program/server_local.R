@@ -611,3 +611,123 @@ observeEvent(plsda(), {
     showElement("plsda_download")    
 })
     
+
+# sPLSDA ------------------------------------------------------------------
+output$splsda_is <- renderUI({
+    selectInput("splsda_is",
+        "choose condition", choices = is_vars()
+    )
+})
+
+#  * tuning ---------------------------------------------------------------
+## store tune object
+splsda_tune <- eventReactive(input$splsda_tune, {
+    req(data())
+    waiter_show()
+    X <- data() |>
+        column_to_rownames(filename()) |>
+        select(all_of(var_names()))
+    Y <- data() |>
+        pull(input$splsda_is) |>
+        factor()
+    splsda_tune <- tune.splsda(
+        X, Y, ncomp = 5, validation = 'Mfold',
+        folds = 5, dist = 'max.dist',
+        test.keepX = c(1:10, seq(20, 100, 10)),
+        nrepeat = 10
+    )
+    waiter_hide()
+    splsda_tune
+})
+## output keepx after tuning 
+output$splsda_keepx <- renderUI({
+    descriptionBlock(
+        header = splsda_tune()$choice.keepX[1:input$splsda_ncomp] |> paste0(collapse = ", "),
+        text = "keepX used after tuning"
+    )
+})
+## update input after tuning
+observeEvent(splsda_tune(), {
+    updateSelectInput(session, "splsda_keep",
+        choices = c("default", "tuned"),
+        selected = "tuned"
+    )
+    updateNumericInput(session, "splsda_ncomp",
+        value = splsda_tune()$choice.ncomp$ncomp, max = 5
+    )
+})
+## store splsda object
+splsda_var <- eventReactive(input$splsda_start, {
+    req(data())
+    waiter_show()
+    X <- data() |>
+        column_to_rownames(filename()) |>
+        select(all_of(var_names()))
+    Y <- data() |>
+        pull(input$splsda_is) |>
+        factor()
+    if (input$splsda_keep == "default") {
+        splsda <- splsda(X, Y, ncomp = input$splsda_ncomp)
+    }
+    else {
+        splsda <- splsda(
+            X, Y, ncomp = input$splsda_ncomp,
+            keepX = splsda_tune()$choice.keepX[1:input$splsda_ncomp]
+        )
+    }
+    waiter_hide()
+    variates <- as_tibble(splsda$variates$X)
+    loading <- splsda$loadings$X
+    list(
+        "splsda"= splsda, "X" = X, "Y" = Y,
+        "variates" = variates, "loading" = loading
+    )
+})
+
+
+#  * overview -------------------------------------------------------------
+
+output$splsda_overview <- renderPlot(res = 144, {
+    p <- ggplot(
+        splsda_var()[["variates"]] |>
+            bind_cols(condition = splsda_var()[["Y"]]),
+        aes(color = condition)
+    ) +
+        geom_autopoint(size = 0.1) +
+        geom_autodensity(alpha = .3) +
+        stat_ellipse(aes(x = .panel_x, y = .panel_y)) +
+        facet_matrix(rows = vars(1:isolate(input$splsda_ncomp)), layer.diag = 2) +
+        theme(
+            strip.background = element_blank(),
+            strip.placement = "outside",
+            strip.text = element_text(size = 12)
+        )
+    print(p)
+})
+
+
+#  * score -------------------------------------------------------------------
+output$splsda_score_n <- renderUI({
+    req(input$splsda_ncomp)
+    selectizeInput("splsda_score_n",
+        "choose component to show",
+        choices = paste0("comp", 1:input$splsda_ncomp),
+        multiple = TRUE, options = list(maxItems = 2)
+    )
+})
+
+output$splsda_score <- renderPlot(res = 144, {
+    req(length(input$splsda_score_n) == 2)
+    p <- ggplot(
+        splsda_var()[["variates"]],
+        aes(
+            x = .data[[input$splsda_score_n[1]]],
+            y = .data[[input$splsda_score_n[2]]],
+            color = splsda_var()[["Y"]])
+    ) +
+        geom_point() +
+        stat_ellipse() +
+        stat_stars() +
+        labs(color = isolate(input$splsda_is))
+    print(p)
+})

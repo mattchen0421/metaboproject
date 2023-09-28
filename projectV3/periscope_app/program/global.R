@@ -25,6 +25,7 @@ library(waiter)
 
 library(plotly)
 library(ggforce)
+library(ggpubr)
 library(scales)
 
 library(tidyverse)
