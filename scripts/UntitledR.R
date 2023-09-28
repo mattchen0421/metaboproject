@@ -1,31 +1,35 @@
 if (interactive()) {
+    options(device.ask.default = FALSE)
+    
+    library(shiny)
+    library(magrittr)
     
     ui <- fluidPage(
-        selectInput("data", "Data Set", c("mtcars", "pressure")),
-        checkboxGroupInput("cols", "Columns (select 2)", character(0)),
-        plotOutput("plot")
+        plotOutput("plot", click = clickOpts("hover")),
+        helpText("Quickly click on the plot above, while watching the result table below:"),
+        tableOutput("result")
     )
     
     server <- function(input, output, session) {
-        observe({
-            data <- get(input$data)
-            # Sets a flag on input$cols to essentially do req(FALSE) if input$cols
-            # is accessed. Without this, an error will momentarily show whenever a
-            # new data set is selected.
-            freezeReactiveValue(input, "cols")
-            updateCheckboxGroupInput(session, "cols", choices = names(data))
+        hover <- reactive({
+            if (is.null(input$hover))
+                list(x = NA, y = NA)
+            else
+                input$hover
         })
+        hover_d <- hover %>% debounce(1000)
+        hover_t <- hover %>% throttle(1000)
         
         output$plot <- renderPlot({
-            # When a new data set is selected, input$cols will have been invalidated
-            # above, and this will essentially do the same as req(FALSE), causing
-            # this observer to stop and raise a silent exception.
-            cols <- input$cols
-            data <- get(input$data)
-            
-            if (length(cols) == 2) {
-                plot(data[[ cols[1] ]], data[[ cols[2] ]])
-            }
+            plot(cars)
+        })
+        
+        output$result <- renderTable({
+            data.frame(
+                mode = c("raw", "throttle", "debounce"),
+                x = c(hover()$x, hover_t()$x, hover_d()$x),
+                y = c(hover()$y, hover_t()$y, hover_d()$y)
+            )
         })
     }
     

@@ -10,12 +10,26 @@
 # ----------------------------------------
 
 library(shiny)
+library(shinythemes)
+library(shinyjs)
+library(shinycssloaders)
+library(shinydashboard)
+library(shinyFeedback)
+library(shinyWidgets)
+library(shinyglide)
 library(periscope)
 library(datamods)
-library(shinydashboard)
-library(tidyverse)
-library(shinyFeedback)
+library(thematic)
+library(waiter)
+
 library(plotly)
+library(ggforce)
+library(scales)
+
+library(tidyverse)
+library(openxlsx)
+library(mixOmics)
+
 
 # -- Setup your Application --
 set_app_parameters(
@@ -30,3 +44,5 @@ set_app_parameters(
 
 source("program/fxn/select_var_module.R")
 conflicted::conflicts_prefer(shinydashboard::box)
+conflicted::conflicts_prefer(purrr::set_names)
+tidymodels::tidymodels_prefer()

@@ -14,10 +14,7 @@
 # ----------------------------------------
 
 # -- IMPORTS --
-library(shinythemes)
-library(shinyjs)
-library(waiter)
-library(shinycssloaders)
+
 # ----------------------------------------
 # --      BODY ELEMENT CREATION         --
 # ----------------------------------------
@@ -164,11 +161,44 @@ tabs <- tabItems(
         ),
         box(
             width = 8,
-            downloadablePlotUI("box", height = 600, btn_valign = "top")
+            downloadablePlotUI("box",
+                height = 600, btn_valign = "top"
+            )
+        )
+    ),
+
+# PLSDA -------------------------------------------------------------------
+    tabItem(tabName = "plsda",
+        column(
+            width = 2, 
+            box(
+                width = NULL,
+                uiOutput("plsda_n"),
+                uiOutput("plsda_is"),
+                actionButton("plsda_start", "start"),
+                actionButton("plsda_perf_start", "performance")
+            ),
+            box(
+                width = NULL,
+                uiOutput("plsda_score_n"),
+                downloadButton('plsda_download'),
+            )
+        ),
+        column(
+            width = 10,
+            box(
+                width = NULL, collapsible = TRUE,
+                withSpinner(
+                    plotOutput("plsda_score", height = "600px")
+                )
+            ),
+            box(
+                width = NULL, collapsible = TRUE, collapsed = TRUE,
+                plotlyOutput("plsda_perf", height = "600px")
+            )
         )
     )
-
-
+    
 )
     
 

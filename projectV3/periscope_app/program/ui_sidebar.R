@@ -36,7 +36,8 @@ menu <- sidebarMenu(
     menuItem("ridgeline plot", tabName = "ridges", icon = icon("chart-area")),
     menuItem("correlation plot", tabName = "corr", icon = icon("chart-area")),
     menuItem("dumbbell plot", tabName = "dumbbell", icon = icon("chart-area")),
-    menuItem("box plot", tabName = "box", icon = icon("chart-area"))
+    menuItem("box plot", tabName = "box", icon = icon("chart-area")),
+    menuItem("PLSDA", tabName = "plsda", icon = icon("magnifying-glass-chart"))
 )
 
 # -- Register Basic Elements in the ORDER SHOWN in the UI

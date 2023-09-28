@@ -24,9 +24,7 @@
 # ----------------------------------------
 
 # -- IMPORTS --
-library(thematic)
-library(openxlsx)
-library(scales)
+
 # -- VARIABLES --
 
 
@@ -334,22 +332,24 @@ output$cor_group <- renderUI({
 
 output$corr <- renderPlot(height = 600, res = 144, {
     req(input$cor_is, input$cor_group, data())
-    cor(
+    data_cor <- cor(
         data() |>
             filter(.data[[input$cor_is]] == input$cor_group) |> 
             select(all_of(var_names())) |> 
             drop_na()
     ) |> 
-        round(2) |> 
-        corrplot::corrplot(
-            method = "color",
-            order = 'alphabet',
-            type = "lower",
-            diag = FALSE,
-            tl.srt = 45,
-            # tl.col = "white",
-            tl.cex = 6/length(var_names()) + 0.5
-        )
+        round(2) 
+    p <- ggcorrplot::ggcorrplot(
+            data_cor,
+            type = "lower", outline.color = "white", lab = TRUE,
+            color = c("#9C0824", "white", "#26456E")
+        ) 
+        # corrplot::corrplot(
+        # data_cor,
+        # method = "color", order = 'alphabet', type = "lower",
+        # diag = FALSE, tl.srt = 45, tl.cex = 6/length(var_names()) + 0.5
+        # )
+    print(p)
 })
 
 # dumbbell plot -----------------------------------------------------------
@@ -423,7 +423,7 @@ output$dumbbell <- renderPlotly({
         ) +
         scale_x_continuous(labels = comma) +
         scale_color_brewer(palette = "Set1", na.value = NA) +
-        guides(color = FALSE)  
+        guides(color = "none")  
     ggplotly(p, tooltip = "text") 
 })
 
@@ -462,3 +462,130 @@ downloadablePlot("box",
     downloadfxns = list(png = box_plot),
     visibleplot = box_plot
 )
+
+# PLSDA -------------------------------------------------------------------
+output$plsda_n <- renderUI({
+    req(var_names())
+    numericInput("plsda_n",
+        "choose number of component",
+         min = 2, max = length(var_names()), value = length(var_names())
+    )
+})
+output$plsda_is <- renderUI({
+    req(is_vars())
+    selectInput("plsda_is",
+        "choose condition", choices = is_vars()
+    )
+})
+output$plsda_score_n <- renderUI({
+    req(input$plsda_n)
+    pickerInput("plsda_score_n", multiple = TRUE,
+        label = "Select which componemt to show",
+        choices = 1:input$plsda_n,
+        options = list(
+            `actions-box` = TRUE,
+            `selected-text-format` = "count > 2"
+        )
+    )
+})
+
+
+output$plsda_download <- downloadHandler(
+    contentType = "image/png",
+    filename = function() {
+        "plsda_score.png"
+    },
+    content = function(file) {
+        ggsave(file, plot = plsda_score_plot(), device = "png")
+    }
+)
+
+plsda <- eventReactive(input$plsda_start, {
+    waiter_show()
+    plsda_X <- data() |>
+        column_to_rownames(filename()) |>
+        select(all_of(var_names()))
+    plsda_Y <- data() |>
+        pull(input$plsda_is) |>
+        factor()
+    plsda <- mixOmics::plsda(plsda_X, plsda_Y, ncomp = input$plsda_n)
+    waiter_hide()
+    plsda
+})
+
+plsda_perf <- eventReactive(input$plsda_perf_start, {
+    req(plsda())
+    waiter_show()
+    plsda_perf <- perf(
+        plsda(), validation = 'Mfold', folds = 3, 
+        progressBar = FALSE, 
+        nrepeat = 10
+    )   
+    overall <- plsda_perf$error.rate$overall |> 
+        as.data.frame() |> 
+        mutate("class" = "overall", "component" = 1:input$plsda_n)
+    
+    BER <- plsda_perf$error.rate$BER |> 
+        as.data.frame() |> 
+        mutate("class" = "BER", "component" = 1:input$plsda_n) 
+    
+    sd <- as.data.frame(plsda_perf$error.rate.sd$overall) |> 
+        bind_rows(as.data.frame(plsda_perf$error.rate.sd$BER)) |> 
+        pivot_longer(cols = 1:3, names_to = "dist", values_to = "sd")
+    
+    perf_data <- bind_rows(overall, BER) |> 
+        pivot_longer(cols = 1:3, names_to = "dist", values_to = "value") |> 
+        bind_cols(sd[,2])
+    waiter_hide()
+    perf_data
+})
+plsda_score_n <- reactive({
+    input$plsda_score_n
+}) |> 
+    debounce(1000)
+
+
+plsda_score_plot <- reactive({
+    req(plsda(), plsda_score_n())
+    final_data <- plsda()$variates$X |> 
+        bind_cols(
+            condition = data() |>
+                pull(input$plsda_is) |>
+                factor()
+        )
+    p <- ggplot(final_data, aes(color = condition)) +
+        geom_autopoint(size = 0.1) +
+        geom_autodensity(alpha = .3) +
+        stat_ellipse(aes(x = .panel_x, y = .panel_y)) +
+        facet_matrix(
+            rows = vars(as.numeric(plsda_score_n())),
+            layer.diag = 2
+        ) +
+        theme(
+            strip.background = element_blank(),
+            strip.placement = "outside",
+            strip.text = element_text(size = 12)
+        )
+    print(p)
+})
+
+output$plsda_score <- renderPlot(res = 144, {
+    req(length(input$plsda_score_n) > 1)
+    plsda_score_plot()
+})
+
+output$plsda_perf <- renderPlotly({
+    req(plsda_perf())
+    p <- ggplot(
+        plsda_perf(),
+        aes(
+            x = component, y = value,
+            group = interaction(dist, class), color = dist)
+    ) +
+        geom_point() +
+        geom_path(aes(linetype = class)) +
+        scale_x_continuous(breaks = 1:isolate(input$plsda_n)) +
+        geom_errorbar(aes(ymin = value - sd, ymax = value + sd)) +
+        ylab("Classification erro rate")
+    ggplotly(p)
+})
