@@ -88,7 +88,7 @@ tabs <- tabItems(
             uiOutput("slope_change"),
         ),
         box(
-            width = 8,
+            width = 8, status = "primary",
             withSpinner(
                 plotlyOutput("slope", height = "600px")
             )
@@ -104,7 +104,7 @@ tabs <- tabItems(
             uiOutput("density_bw"),
         ),
         box(
-            width = 8,
+            width = 8, status = "primary",
             withSpinner(
                 plotlyOutput("density", height = "600px")
             )
@@ -128,9 +128,9 @@ tabs <- tabItems(
             uiOutput("cor_group")
         ),
         box(
-            width = 8, height = 650,
+            width = 8, status = "primary",
             withSpinner(
-                plotOutput("corr")  
+                plotOutput("corr", height = 600)  
             )
         )
     ),
@@ -144,7 +144,7 @@ tabs <- tabItems(
             uiOutput("dumbbell_change")
         ),
         box(
-            width = 8,
+            width = 8, status = "primary",
             withSpinner(
                 plotlyOutput("dumbbell", height = "600px")
             )
@@ -160,7 +160,7 @@ tabs <- tabItems(
             uiOutput("box_is")
         ),
         box(
-            width = 8,
+            width = 8, status = "primary",
             downloadablePlotUI("box",
                 height = 600, btn_valign = "top"
             )
@@ -170,7 +170,7 @@ tabs <- tabItems(
 # PLSDA -------------------------------------------------------------------
     tabItem(tabName = "plsda",
         column(
-            width = 2, 
+            width = 4, 
             box(
                 width = NULL,
                 uiOutput("plsda_n"),
@@ -185,20 +185,23 @@ tabs <- tabItems(
             )
         ),
         column(
-            width = 10,
+            width = 8,
             box(
+                title = "Score plot",
                 width = NULL, collapsible = TRUE,
+                solidHeader = TRUE, status = "primary",
                 withSpinner(
                     plotOutput("plsda_score", height = "600px")
                 )
             ),
-            box(
+            shinydashboardPlus::box(id = "plsda_perf_box",
+                title = "Performance",
                 width = NULL, collapsible = TRUE, collapsed = TRUE,
+                solidHeader = TRUE, status = "primary",  
                 plotlyOutput("plsda_perf", height = "600px")
             )
         )
     )
-    
 )
     
 

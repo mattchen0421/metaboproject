@@ -273,19 +273,23 @@ output$density <- renderPlotly({
 
 output$ridges_var <- renderUI({
     checkboxGroupInput("ridges_var",
-        "choose variables", choices = var_names()
+        "choose variables (>2)", choices = var_names()
     )
 })
 
-ridges_height <- reactive({
-    ifelse(length(input$ridges_var) > 4, length(input$ridges_var)*150, 600)
-})
+ridges_var <- reactive({
+    input$ridges_var
+}) |> 
+    debounce(1000)
 
-output$ridges <- renderPlot(height = function() ridges_height(), res = 144, {
-    req(input$ridges_var)
+ridges_height <- reactive({
+    ifelse(length(ridges_var()) > 4, length(ridges_var())*150, 600)
+})
+output$ridges <- renderPlot(res = 144, {
+    req(length(ridges_var()) > 1)
     ggplot(
         data() |>
-            pivot_longer(all_of(input$ridges_var), names_to = "vars", values_to = "values"),
+            pivot_longer(all_of(ridges_var()), names_to = "vars", values_to = "values"),
         aes(x = values, y = vars, fill = after_stat(quantile))
     ) +
         ggridges::stat_density_ridges(
@@ -301,14 +305,18 @@ output$ridges <- renderPlot(height = function() ridges_height(), res = 144, {
             values = c("pink", "white", "lightblue"),
             labels = c("(0, 5%]", "(5%, 95%]", "(95%, 1]")
         ) +
-        scale_x_continuous(labels = comma)
+        scale_x_continuous(labels = comma) +
+        theme(
+            legend.position = "top",
+            legend.direction = "horizontal"
+        )
 })
         
 output$ridges_ui <- renderUI({
     box(
-        width = 8, height = ridges_height() + 50,
+        width = 8, status = "primary",
         withSpinner(
-            plotOutput("ridges")
+            plotOutput("ridges", height = ridges_height())
         )
     )
 })
@@ -330,7 +338,7 @@ output$cor_group <- renderUI({
     )
 })
 
-output$corr <- renderPlot(height = 600, res = 144, {
+output$corr <- renderPlot(res = 144, {
     req(input$cor_is, input$cor_group, data())
     data_cor <- cor(
         data() |>
@@ -341,7 +349,7 @@ output$corr <- renderPlot(height = 600, res = 144, {
         round(2) 
     p <- ggcorrplot::ggcorrplot(
             data_cor,
-            type = "lower", outline.color = "white", lab = TRUE,
+            type = "lower", outline.color = "white",
             color = c("#9C0824", "white", "#26456E")
         ) 
         # corrplot::corrplot(
@@ -464,6 +472,9 @@ downloadablePlot("box",
 )
 
 # PLSDA -------------------------------------------------------------------
+hideElement("plsda_perf_start")
+hideElement("plsda_download")
+
 output$plsda_n <- renderUI({
     req(var_names())
     numericInput("plsda_n",
@@ -485,7 +496,8 @@ output$plsda_score_n <- renderUI({
         options = list(
             `actions-box` = TRUE,
             `selected-text-format` = "count > 2"
-        )
+        ),
+        selected = c(1, 2)
     )
 })
 
@@ -512,7 +524,11 @@ plsda <- eventReactive(input$plsda_start, {
     waiter_hide()
     plsda
 })
-
+observeEvent(input$plsda_perf_start, {
+    if (input$plsda_perf_box$collapsed) {
+        updateBox("plsda_perf_box", action = "toggle")
+    }
+})
 plsda_perf <- eventReactive(input$plsda_perf_start, {
     req(plsda())
     waiter_show()
@@ -589,3 +605,9 @@ output$plsda_perf <- renderPlotly({
         ylab("Classification erro rate")
     ggplotly(p)
 })
+
+observeEvent(plsda(), {
+    showElement("plsda_perf_start")  
+    showElement("plsda_download")    
+})
+    
