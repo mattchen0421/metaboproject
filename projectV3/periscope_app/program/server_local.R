@@ -731,3 +731,170 @@ output$splsda_score <- renderPlot(res = 144, {
         labs(color = isolate(input$splsda_is))
     print(p)
 })
+
+#  * loading --------------------------------------------------------------
+
+output$splsda_loading_n <- renderUI({
+    selectInput("splsda_loading_n",
+        "choose component to show",
+        choices = paste0("comp", 1:input$splsda_ncomp)
+    )
+})
+
+splsda_loading_height <- reactive({
+    if (splsda_loading_data() |> pull(var) |> length() < 7) {
+        return(600)
+    }else {
+        return(splsda_loading_data() |> pull(var) |> length()*80)
+    }
+})
+
+splsda_loading_data <- eventReactive(input$splsda_loading_refresh,
+    ignoreNULL = FALSE, ignoreInit = FALSE, {
+    req(input$splsda_loading_n, splsda_var(), input$splsda_loading_valve)
+    data <- splsda_var()[["loading"]] |>
+        data.frame() |>
+        rownames_to_column("var") |> 
+        filter(abs(.data[[input$splsda_loading_n]]) > input$splsda_loading_valve)
+    empty <- nrow(data) == 0
+    feedbackWarning(
+         "splsda_loading_valve", empty, "Lower the threshold"
+    )
+    data
+})
+
+output$splsda_loading <- renderPlot(res = 144, {
+        p <- ggplot(
+            splsda_loading_data(),
+            aes(
+                .data[[isolate(input$splsda_loading_n)]],
+                reorder(var, abs(.data[[isolate(input$splsda_loading_n)]])))
+        ) +
+            geom_bar(
+                aes(fill = ifelse(.data[[isolate(input$splsda_loading_n)]] > 0, "pink", "lightblue")),
+                stat = "identity", show.legend = FALSE
+            ) +
+            geom_text(
+                aes(
+                    label = round(.data[[isolate(input$splsda_loading_n)]], 2),
+                    hjust = ifelse(.data[[isolate(input$splsda_loading_n)]] < 0, 1.25, -0.25),
+                    vjust = 0.5
+                ),
+                size = 5
+            ) +
+            xlab("Loading") +
+            ylab("Group") +
+            scale_x_continuous(limits = c(-1, 1))
+        print(p)
+    })
+
+output$splsda_loading_ui <- renderUI({
+    withSpinner(
+        plotOutput("splsda_loading", height = splsda_loading_height())
+    )
+})
+
+
+#  * corr -----------------------------------------------------------------
+output$splsda_cor_n <- renderUI({
+    selectizeInput("splsda_cor_n",
+        "choose component to show",
+        multiple = TRUE, options = list(maxItems = 2),
+        choices = setNames(1:input$splsda_ncomp, paste0("comp", 1:input$splsda_ncomp))
+    )
+})
+
+output$splsda_cor_vip <- renderUI({
+    req(var_names())
+    numericInput("splsda_cor_vip",
+        "show by importance",
+        value = length(var_names()), step = 1, min = 1, max = length(var_names())
+    )
+})
+splsda_cor_vip <- reactive({
+    req(input$splsda_cor_n, input$splsda_cor_n)
+    vip <- vip(splsda_var()[["splsda"]])[ ,as.numeric(input$splsda_cor_n)] |> 
+        rowSums()
+    cor <- plotVar(
+        splsda_var()[["splsda"]],
+        comp = as.numeric(input$splsda_cor_n),
+        plot = FALSE
+    )
+    vip[row.names(cor)]
+})
+splsda_cor_data <- reactive({
+    req(input$splsda_cor_n)
+    plotVar(
+        splsda_var()[["splsda"]],
+        comp = as.numeric(input$splsda_cor_n),
+        plot = FALSE
+    ) |> 
+        add_column("importance" = splsda_cor_vip()) |> 
+        arrange(desc(importance)) |> 
+        slice_head(n = input$splsda_cor_vip)
+}) |> 
+    debounce(500)
+
+output$test <- renderPrint({
+    c(splsda_cor_vip())
+})
+output$splsda_cor <- renderPlot(res = 144, {
+    req(length(input$splsda_cor_n) == 2, splsda_cor_data())
+    p <- ggplot(splsda_cor_data(), aes(x, y)) +
+        geom_circle(aes(x0 = 0, y0 = 0, r = 0.5)) +
+        geom_circle(aes(x0 = 0, y0 = 0, r = 1)) +
+        geom_hline(yintercept = 0, linetype = "dashed", linewidth = 1) +
+        geom_vline(xintercept = 0, linetype = "dashed", linewidth = 1) +
+        geom_point(aes(color = sqrt(x^2 + y^2)), size = 4) +
+        ggrepel::geom_text_repel(aes(label = names), box.padding = 0.5, max.overlaps = Inf) +
+        scale_x_continuous(limits = c(-1, 1)) +
+        scale_y_continuous(limits = c(-1, 1)) +
+        paletteer::scale_color_paletteer_c("grDevices::Oslo", limits = c(0, 1)) +
+        labs(title = "Correlation Circle Plot", x = "comp1", y = "comp2") +
+        guides(color = "none")
+    print(p)
+})
+
+
+#  * performance ----------------------------------------------------------
+
+output$splsda_perf_n <- renderUI({
+    selectInput("splsda_perf_n", 
+        "choose component to show",
+        choices = paste0("comp", 1:input$splsda_ncomp)
+    )
+})
+splsda_perf <- eventReactive(input$splsda_perf_start, {
+    req(splsda_var())
+    waiter_show()
+    splsda_perf <- perf(
+        splsda_var()[["splsda"]], folds = 5, validation = "Mfold", 
+        dist = "max.dist", progressBar = FALSE, nrepeat = 10
+    )
+    waiter_hide()
+    splsda_perf
+})
+
+output$splsda_perf_er <- renderPrint({
+    splsda_perf()$error.rate.class 
+})
+
+output$splsda_perf <- renderPlot(res = 144, {
+    req(splsda_perf())
+    ggplot(
+        splsda_perf()$features$stable[[input$splsda_perf_n]] |> 
+            as.data.frame(),
+        aes(x = Freq, y = reorder(Var1, Freq))
+    ) +
+        geom_col(fill = "lightblue") +
+        labs(
+            title = "Feature stability",
+            x = "variables selected across CV folds",
+            y = "Stability frequency"
+        ) 
+})
+
+
+# SOM ---------------------------------------------------------------------
+
+

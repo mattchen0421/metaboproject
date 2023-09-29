@@ -203,7 +203,7 @@ tabs <- tabItems(
         )
     ),
 
-# splsda ------------------------------------------------------------------
+# sPLSDA ------------------------------------------------------------------
     tabItem(tabName = "splsda",
         box(
             width = 4,
@@ -233,8 +233,48 @@ tabs <- tabItems(
                 withSpinner(
                     plotOutput("splsda_score", height = 600)
                 )
+            ),
+            tabPanel(
+                "Loading plot",
+                fluidRow(
+                    column(5, uiOutput("splsda_loading_n")),
+                    column(5,
+                        numericInput("splsda_loading_valve",
+                            "show variables with loading higher than chosen threshold",
+                            value = 0.5, min = 0, max = 1, step = 0.1
+                        )
+                    ),
+                    column(2, actionButton("splsda_loading_refresh", "refresh"))
+                ),
+                withSpinner(
+                    uiOutput("splsda_loading_ui")
+                )
+            ),
+            tabPanel(
+                "Correlation plot",
+                fluidRow(
+                    column(6, uiOutput("splsda_cor_n")),
+                    column(6, uiOutput("splsda_cor_vip"))
+                ),
+                withSpinner(
+                    plotOutput("splsda_cor", height = 800)
+                )
+            ),
+            tabPanel(
+                "Performance",
+                actionButton("splsda_perf_start", "start"),
+                verbatimTextOutput("splsda_perf_er"),
+                uiOutput("splsda_perf_n"),
+                withSpinner(
+                    plotOutput("splsda_perf", height = 600)
+                )
             )
         )
+    ),
+
+# SOM ---------------------------------------------------------------------
+    tabItem(tabName = "som",
+            
     )
 
 )

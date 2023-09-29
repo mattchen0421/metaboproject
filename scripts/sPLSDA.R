@@ -4,8 +4,10 @@
 X <- data |> 
     column_to_rownames(filename) |> 
     dplyr::select(all_of(var_names))
+
+
 Y <- data |> 
-    pull(condition_1) |>
+    pull(pair_prepost) |>
     factor()
 
 tune_splsda <- tune.splsda(
@@ -18,7 +20,7 @@ plot(tune_splsda, sd = TRUE)
 tune_splsda$choice.ncomp$ncomp
 tune_splsda$choice.keepX
 
-splsda <- splsda(X, Y, ncomp = 2, keepX = c(2, 1)) 
+splsda <- splsda(X, Y, ncomp = 5) 
 
 variates <- splsda$variates$X |> as_tibble()
 

@@ -38,7 +38,8 @@ menu <- sidebarMenu(
     menuItem("dumbbell plot", tabName = "dumbbell", icon = icon("chart-area")),
     menuItem("box plot", tabName = "box", icon = icon("chart-area")),
     menuItem("PLSDA", tabName = "plsda", icon = icon("magnifying-glass-chart")),
-    menuItem("sPLSDA", tabName = "splsda", icon = icon("magnifying-glass-chart"))
+    menuItem("sPLSDA", tabName = "splsda", icon = icon("magnifying-glass-chart")),
+    menuItem("sPLSDA", tabName = "som", icon = icon("magnifying-glass-chart"))
 )
 
 # -- Register Basic Elements in the ORDER SHOWN in the UI
