@@ -898,3 +898,251 @@ output$splsda_perf <- renderPlot(res = 144, {
 # SOM ---------------------------------------------------------------------
 
 
+#  * SOM object -----------------------------------------------------------
+
+output$som_is <- renderUI({
+    selectInput("som_is",
+        "choose condition", choices = is_vars()            
+    )
+})
+
+som <- eventReactive(input$som_start, {
+    req(data())
+    waiter_show()
+    data_som <- data() |> 
+        select(all_of(var_names())) |> 
+        as.matrix()
+    grid_size <- ceiling(nrow(data_som) ^ (1/2.5))
+    som <- data_som |>
+        scale() |>
+        kohonen::som(
+            grid = somgrid(
+                grid_size, grid_size,
+                topo = "hexagonal", neighbourhood.fct = "gaussian"),
+            rlen = as.numeric(input$som_rlen)
+        )
+    som_grid <- som[[4]]$pts |>
+        as_tibble() |>
+        mutate(id = row_number())
+    som_pts <- tibble(
+        id = som[[2]],
+        dist = som[[3]],
+        condition = drop_na(data()) |> pull(input$som_is)
+    ) |>
+        left_join(som_grid, by = "id")
+    
+    ndist <- unit.distances(som$grid)
+    cddist <- as.matrix(object.distances(som, type = "codes"))
+    cddist[abs(ndist - 1) > .001] <- NA
+    neigh.dists <- colMeans(cddist, na.rm = TRUE)
+    
+    som_grid <- som_grid |>
+        mutate(dist = neigh.dists)
+    
+    # som_code <- som_grid |> 
+    #     bind_cols(getCodes(som))
+    
+    waiter_hide()
+    list(
+        "som" = som, "som_grid" = som_grid, "som_pts" = som_pts
+    )
+})
+
+
+#  * mapping --------------------------------------------------------------
+
+output$som_map <- renderPlot(res = 108, {
+    p <- ggplot(som()$som_grid, aes(x0 = x,y0 = y))+
+        geom_circle(aes(r = 0.5)) +
+        theme(
+            panel.background = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            axis.text = element_blank(),
+            axis.title = element_blank(),
+            legend.position = "bottom"
+        ) +
+        geom_jitter(
+            data = som()$som_pts,
+            aes(x, y, col = condition),
+            alpha = 0.5, size = 3
+        )
+    print(p)
+})
+
+#  * pie ------------------------------------------------------------------
+
+output$som_pie <- renderPlot(res = 108, {
+    pts <- som()$som_pts |> 
+        group_by(id, x, y) |> 
+        count(condition) |> 
+        ungroup() |> 
+        dplyr::filter(!is.na(condition))
+    
+    p <- ggplot(som()$som_grid, aes(x0 = x,y0 = y))+
+        geom_circle(aes(r = 0.5)) +
+        theme(
+            panel.background = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            axis.text = element_blank(),
+            axis.title = element_blank(),
+            legend.position = "bottom"
+        ) + 
+        geom_arc_bar(
+            data = pts,
+            aes(
+                x0 = x, y0 = y, r0 = 0, r = 0.5,
+                amount = n, fill = condition
+            ),
+            stat = 'pie'
+        )
+    print(p)
+})
+
+
+#  * dist -----------------------------------------------------------------
+
+output$som_dist <- renderPlot(res = 108, {
+    p <- ggplot(som()$som_grid, aes(x0 = x,y0 = y)) +
+        geom_regon(
+            aes(sides = 6, angle = pi/2, r = 0.58, fill = dist),
+            color = "black"
+        ) +
+        theme(
+            panel.background = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            axis.text = element_blank(),
+            axis.title = element_blank(),
+            legend.position = "bottom"
+        ) +
+        scale_fill_viridis_c() 
+    print(p)
+})
+
+#  * changes --------------------------------------------------------------
+
+output$som_changes <- renderPlot(res = 108, {
+    data_changes <- tibble(
+        x = 1:as.numeric(isolate(input$som_rlen)),
+        y = som()$som[["changes"]]
+    )
+    p <- ggplot(data_changes, aes(x = x, y = y)) +
+        geom_line() +
+        labs(
+            x = "iteration", y = "Mean distance to closest unit"
+        )
+    print(p)
+})   
+
+#  * count ----------------------------------------------------------------
+
+output$som_count <- renderPlot(res = 108, {
+    som_count <- som()$som_pts |> 
+        group_by(x, y) |> 
+        count(id, .drop = FALSE)
+    
+    ggplot(som_count, aes(x0 = x, y0 = y)) +
+        geom_regon(
+            aes(sides = 6, angle = pi/2, r = 0.58, fill = n),
+            color = "black"
+        ) +
+        theme(
+            panel.background = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            axis.text = element_blank(),
+            axis.title = element_blank(),
+            legend.position = "bottom"
+        ) +
+        scale_fill_paletteer_c("grDevices::Heat", -1)
+})
+
+#  * codes ----------------------------------------------------------------
+
+
+output$som_codes <- renderPlot(res = 108, {
+    plot(som()$som, type = "codes", main = "")
+})
+
+#  * cluster --------------------------------------------------------------
+
+output$som_elbow <- renderPlot(res = 108, {
+    factoextra::fviz_nbclust(getCodes(som()$som), kmeans, method = "wss")
+})
+
+output$som_cluster <- renderPlot(res = 108, {
+    set.seed(111)
+    req(som(), input$som_cluster_n)
+    clust <- kmeans(getCodes(som()$som), input$som_cluster_n)
+    data_cluster <- som()$som_grid |>
+        bind_cols("cluster" = clust[["cluster"]])
+    
+    p <- ggplot(data_cluster, aes(x0 = x, y0 = y)) +
+        geom_regon(
+            aes(sides = 6, angle = pi/2, r = 0.58, fill = factor(cluster)),
+            color = "black", alpha = 0.5
+        ) +
+        geom_jitter(
+            data = som()$som_pts,
+            aes(x, y, col = condition),
+            alpha = 0.5, size = 3
+        ) +
+        theme(
+            panel.background = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            axis.text = element_blank(),
+            axis.title = element_blank(),
+            legend.position = "none"
+        ) 
+        scale_fill_paletteer_d("ggsci::category20_d3")
+    print(p)
+})
+
+# heat map ----------------------------------------------------------------
+
+output$som_heatmaps_ui <- renderUI({
+    ui <- tagList(
+        tags$div(
+            id = "som_heatmaps",
+            lapply(var_names(), function(i) {
+                box(
+                    width = 4, title = paste("Heatmap of ", i),
+                    plotOutput(paste0("som_heatmap", i))
+                )
+            }),
+            sortable_js("som_heatmaps")
+        )
+    )
+    ui
+})
+
+# 在這裡添加圖表生成的代碼
+observeEvent(input$som_start, {
+    data_code <- som()$som_grid |> 
+        bind_cols(getCodes(som()$som))
+    lapply(var_names(), function(i) {
+        output[[paste0("som_heatmap", i)]] <- renderPlot({
+            ggplot(data_code, aes(x0 = x, y0 = y)) +
+                geom_regon(
+                    aes(
+                        sides = 6, angle = pi/2, r = 0.58,
+                        fill = .data[[i]], 
+                    ),
+                    color = "black"
+                ) +
+                theme(
+                    panel.background = element_blank(),
+                    axis.ticks = element_blank(),
+                    panel.grid = element_blank(),
+                    axis.text = element_blank(),
+                    axis.title = element_blank(),
+                    legend.position = "bottom",
+                    legend.title = element_blank()
+                ) +
+                scale_fill_viridis_c(option = "magma") 
+        })
+    })    
+})

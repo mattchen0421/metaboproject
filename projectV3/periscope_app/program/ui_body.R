@@ -274,9 +274,64 @@ tabs <- tabItems(
 
 # SOM ---------------------------------------------------------------------
     tabItem(tabName = "som",
-            
+        tabBox(
+            width = 12,
+            tabPanel(
+                title = "Main",
+                sortable_js("som_plots"),
+                tags$div(
+                    id = "som_plots",
+                    box(
+                        width = 4,
+                        uiOutput("som_is"),
+                        sliderInput("som_rlen",
+                            "choose rlen", value = 300, min = 1, max = 2000     
+                        ),
+                        actionButton("som_start", "start"),
+                        sliderInput("som_cluster_n",
+                            "choose cluster number", value = 6, min = 1, max = 10     
+                        ),
+                    ),
+                    box(
+                        width = 4, title = "Mapping plot", footer = "text",
+                        plotOutput("som_map")
+                    ),
+                    box(
+                        width = 4, title = "Fraction of each group", footer = "text",
+                        plotOutput("som_pie")
+                    ),
+                    box(
+                        width = 4, title = "Neighbour distance plot", footer = "virids",
+                        plotOutput("som_dist")
+                    ),
+                    box(
+                        width = 4, title = "Training progress", footer = "text",
+                        plotOutput("som_changes")
+                    ),
+                    box(
+                        width = 4, title = "Counts plot", footer = "grDevices::Heat",
+                        plotOutput("som_count")
+                    ),
+                    box(
+                        width = 4, title = "Codes Plot", footer = "baseR plot",
+                        plotOutput("som_codes")
+                    ),
+                    box(
+                        width = 4, title = "fviz_nbclust", footer = "text",
+                        plotOutput("som_elbow")
+                    ),
+                    box(
+                        width = 4, title = "Cluster plot", footer = "ggsci::category20_d3",
+                        plotOutput("som_cluster")
+                    )
+                )   
+            ),
+            tabPanel(
+                title = "heatmaps",
+                uiOutput("som_heatmaps_ui")
+            )
+        )
     )
-
 )
     
 

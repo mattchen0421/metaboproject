@@ -18,6 +18,7 @@ library(shinydashboard)
 library(shinyFeedback)
 library(shinyWidgets)
 library(shinyglide)
+library(sortable)
 library(periscope)
 library(datamods)
 library(thematic)
@@ -27,11 +28,12 @@ library(plotly)
 library(ggforce)
 library(ggpubr)
 library(scales)
+library(paletteer)
 
 library(tidyverse)
 library(openxlsx)
 library(mixOmics)
-
+library(kohonen)
 
 # -- Setup your Application --
 set_app_parameters(
@@ -48,4 +50,4 @@ source("program/fxn/select_var_module.R")
 conflicted::conflicts_prefer(shinydashboard::box)
 conflicted::conflicts_prefer(purrr::set_names)
 conflicted::conflicts_prefer(shinydashboardPlus::dashboardPage)
-tidymodels::tidymodels_prefer()
+conflicted::conflicts_prefer(shinyglide::screen)
