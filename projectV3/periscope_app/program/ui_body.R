@@ -262,9 +262,11 @@ tabs <- tabItems(
             ),
             tabPanel(
                 "Performance",
-                actionButton("splsda_perf_start", "start"),
+                fluidRow(
+                    column(4, actionButton("splsda_perf_start", "start")),
+                    column(8, uiOutput("splsda_perf_n"))
+                ),
                 verbatimTextOutput("splsda_perf_er"),
-                uiOutput("splsda_perf_n"),
                 withSpinner(
                     plotOutput("splsda_perf", height = 600)
                 )

@@ -1,0 +1,12 @@
+name: periscope_app
+title: periscope_app
+username: 12sam4-matt-chen
+account: 12sam4-matt-chen
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10040808
+bundleId: 7746160
+url: https://12sam4-matt-chen.shinyapps.io/periscope_app/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
