@@ -461,7 +461,7 @@ box_plot <- reactive({
         geom_boxplot() + 
         geom_jitter() +
         scale_y_continuous(labels = comma)
-    print(p)
+    p
 })
 
 downloadablePlot("box", 
